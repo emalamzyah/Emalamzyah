@@ -20,7 +20,7 @@
 </head>
 <body>
 
-<div id="ui">geser dan zoom</div>
+<div id="ui">Drag untuk memutar manual • Scroll untuk zoom</div>
 
 <script type="importmap">
     {
@@ -61,10 +61,10 @@
     // --- MEMUAT FOTO (OPSI B - HAPUS KOMENTAR UNTUK MENGGUNAKAN FOTO ASLI) ---
     
     const photoFiles = [
-        'Fonts/1.jpg', 'Fonts/2.jpg', 'Fonts/3.jpg', 
-        'Fonts/4.jpg', 'Fonts/5.jpg', 'Fonts/6.jpg', 
-        'Fonts/7.jpg', 'Fonts/8.jpg', 'Fonts/9.jpg', 
-        'Fonts/10.jpg'
+        '1.jpg', '2.jpg', '3.jpg', 
+        '4.jpg', '5.jpg', '6.jpg', 
+        '7.jpg', '8.jpg', '9.jpg', 
+        '10.jpg'
     ];
     const photoTextures = photoFiles.map(file => textureLoader.load(file));
     
@@ -133,6 +133,7 @@
     mainGroup.add(heart);
 
     // --- D. 10 FOTO MENGAMBANG (DENGAN ANIMASI) ---
+    // --- D. 10 FOTO MENGAMBANG (DENGAN ANIMASI) ---
     const photosGroup = new THREE.Group();
     mainGroup.add(photosGroup);
 
@@ -141,25 +142,26 @@
     const photoCount = 10;
 
     for (let i = 0; i < photoCount; i++) {
-        // --- OPSI A (DEFAULT) - PLACEHOLDER PUTIH BERSINAR ---
-        const photoMaterial = new THREE.MeshBasicMaterial({ 
-            color: 0xffffff,
-            side: THREE.DoubleSide,
-            transparent: true,
-            opacity: 0.8
-        });
+        // PERBAIKAN: Gunakan 'let' dan pilih salah satu metode saja
+        // Ganti bagian material foto dengan ini
+const photoMaterial = new THREE.MeshLambertMaterial({ 
+    map: photoTextures[i % photoTextures.length], 
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.9,
+    emissive: new THREE.Color(0x000000), // Memastikan foto tidak mengeluarkan cahaya sendiri
+});
+// Tambahkan lampu agar foto terlihat jelas tapi tidak silau
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.1); // Cahaya merata
+scene.add(ambientLight);
 
-        // --- OPSI B - HAPUS KOMENTAR JIKA MENGGUNAKAN FOTO ASLI ---
-        
-        const photoMaterial = new THREE.MeshBasicMaterial({ 
-            map: photoTextures[i % photoTextures.length], 
-            side: THREE.DoubleSide,
-            transparent: true,
-            opacity: 0.9
-        });
-        
+const pointLight = new THREE.PointLight(0xffffff, 0.1);
+pointLight.position.set(0, 0, 0); // Letakkan di tengah (di dalam hati)
+scene.add(pointLight);
 
         const photoMesh = new THREE.Mesh(photoGeometry, photoMaterial);
+        
+        // ... (sisanya tetap sama)
         
         // Posisi awal acak di dalam bola, mengelilingi hati
         photoMesh.position.set(
@@ -183,7 +185,13 @@
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
     // Strength 1.5, Radius 0.4, Threshold 0.1 untuk pendaran yang kuat
-    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.1);
+    // Ubah angka 0.1 menjadi 0.8 atau 0.9
+const bloomPass = new UnrealBloomPass(
+    new THREE.Vector2(window.innerWidth, window.innerHeight), 
+    1.5,  // Strength
+    0.4,  // Radius
+    0.85  // Threshold (Naikkan ini agar foto tidak silau)
+);
     composer.addPass(bloomPass);
 
     // --- Animasi Loop ---
